@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<!--
+=============================================================================
+Smart Home AI Simulator — Futuristic Control Center UI
+=============================================================================
+A production-quality Smart Home AI Dashboard featuring real-time telemetry,
+goal-based AI agent HUD, living room animation, wall-mounted AC airflow canvas,
+Chart.js analytics, vertical activity timeline, smart mode controls, and a
+floating voice assistant.
+=============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Smart Home AI Simulator — Advanced Goal-Based Temperature Control Agent Center" />
+    <title>Smart Home AI Control Center</title>
+
+    <!-- Google Fonts: Inter, Outfit & Orbitron (Futuristic HUD Display) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- FontAwesome Icons (v6) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Chart.js for Live Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body class="theme-comfort">
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  ANIMATED CANVAS BACKGROUND (Ambient Lighting & Airflow Particles) -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <canvas id="ambientCanvas"></canvas>
+
+    <!-- Ambient Room Theme Overlay Glow -->
+    <div class="ambient-glow-overlay" id="ambientGlowOverlay"></div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  TOP NAVIGATION BAR                                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="logo-wrapper">
+                    <i class="fa-solid fa-snowflake logo-spin"></i>
+                    <div class="logo-pulse-ring"></div>
+                </div>
+                <div class="brand-text">
+                    <h1 class="hud-font">SMART HOME AI</h1>
+                    <span class="brand-sub">Goal-Based Thermal Agent</span>
+                </div>
+            </div>
+
+            <!-- Header Center: Clock & Weather Preview -->
+            <div class="header-hud">
+                <div class="hud-pill">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="navTime">--:--:--</span>
+                    <span class="hud-date" id="navDate">--- --, ----</span>
+                </div>
+                <div class="hud-pill weather-pill" id="navWeatherPill">
+                    <i class="fa-solid fa-sun weather-icon" id="navWeatherIcon"></i>
+                    <span id="navOutsideTemp">--°C</span>
+                    <span class="weather-cond" id="navWeatherCond">Sunny</span>
+                </div>
+            </div>
+
+            <!-- Header Right: System Status & Voice Toggle -->
+            <div class="nav-right">
+                <button class="voice-toggle-btn" id="voiceToggleBtn" title="Toggle AI Voice Prompts">
+                    <i class="fa-solid fa-volume-high" id="voiceIcon"></i>
+                    <span>AI Voice</span>
+                </button>
+
+                <div class="system-status-badge" id="systemStatusBadge">
+                    <span class="status-dot"></span>
+                    <span id="systemStatusText">SYSTEM ACTIVE</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  MAIN DASHBOARD CONTAINER                                          -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <main class="main-layout">
+
+        <!-- ── ROW 1: HERO SECTION (Gauge, Smart Room Visualizer, AI HUD) ── -->
+        <section class="hero-grid">
+
+            <!-- CARD 1: Temperature Gauge Card -->
+            <div class="glass-card gauge-hero-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-temperature-half"></i> ROOM TEMPERATURE</h3>
+                    <span class="badge-comfort" id="comfortBadge">Comfortable</span>
+                </div>
+
+                <div class="gauge-display-container">
+                    <svg class="hero-gauge-svg" viewBox="0 0 220 220">
+                        <defs>
+                            <linearGradient id="gaugeGradientCool" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f2fe" />
+                                <stop offset="100%" stop-color="#4facfe" />
+                            </linearGradient>
+                            <linearGradient id="gaugeGradientComfort" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f2fe" />
+                                <stop offset="50%" stop-color="#10b981" />
+                                <stop offset="100%" stop-color="#34d399" />
+                            </linearGradient>
+                            <linearGradient id="gaugeGradientHot" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f59e0b" />
+                                <stop offset="100%" stop-color="#ef4444" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Background track -->
+                        <circle class="gauge-track" cx="110" cy="110" r="90" stroke-dasharray="424 565" stroke-dashoffset="-70" />
+                        <!-- Value fill arc -->
+                        <circle class="gauge-value-arc" id="gaugeArc" cx="110" cy="110" r="90" stroke-dasharray="0 565" stroke-dashoffset="-70" />
+                    </svg>
+
+                    <!-- Center Readout -->
+                    <div class="gauge-readout">
+                        <div class="thermometer-icon-wrapper" id="thermoWrapper">
+                            <i class="fa-solid fa-temperature-three-quarters" id="thermoIcon"></i>
+                        </div>
+                        <div class="temp-big-value">
+                            <span id="heroCurrentTemp" class="hud-font">25.0</span><span class="unit">°C</span>
+                        </div>
+                        <div class="target-subtext">
+                            Target: <strong id="heroTargetTemp">24.0</strong>°C
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gauge-footer-stats">
+                    <div class="mini-stat">
+                        <span class="label">MIN SENSOR</span>
+                        <span class="val">18.0°C</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="label">AI CONFIDENCE</span>
+                        <span class="val highlight" id="aiConfVal">98.5%</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="label">MAX SENSOR</span>
+                        <span class="val">35.0°C</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: Smart House & Wall AC Visualizer -->
+            <div class="glass-card room-visualizer-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-house-signal"></i> LIVING ROOM VISUALIZER</h3>
+                    <span class="ac-state-badge" id="acStateBadge"><i class="fa-solid fa-power-off"></i> AC OFF</span>
+                </div>
+
+                <div class="room-canvas-wrapper" id="roomCanvasWrapper">
+                    <!-- Wall-Mounted Air Conditioner Unit -->
+                    <div class="ac-unit-element" id="acUnit">
+                        <div class="ac-body">
+                            <div class="ac-brand">SMART-AI COOLING</div>
+                            <div class="ac-vent">
+                                <div class="ac-fan-blade" id="acFanBlade">
+                                    <i class="fa-solid fa-fan"></i>
+                                </div>
+                            </div>
+                            <div class="ac-led-indicator" id="acLedIndicator"></div>
+                            <div class="ac-display-temp" id="acDisplayTemp">24°</div>
+                        </div>
+                        <!-- Cold Airflow Stream Canvas Overlay -->
+                        <canvas id="airflowCanvas"></canvas>
+                    </div>
+
+                    <!-- Living Room Scene Illustration -->
+                    <div class="living-room-scene">
+                        <!-- Window with dynamic weather view -->
+                        <div class="room-window" id="roomWindow">
+                            <div class="window-sky" id="windowSky"></div>
+                            <i class="fa-solid fa-sun window-sun"></i>
+                        </div>
+
+                        <!-- Modern Sofa & Decor -->
+                        <div class="room-furniture">
+                            <div class="sofa">
+                                <div class="sofa-back"></div>
+                                <div class="sofa-seat"></div>
+                            </div>
+                            <div class="indoor-plant">
+                                <i class="fa-solid fa-plant-wilt plant-leaf"></i>
+                            </div>
+                            <div class="floor-lamp" id="floorLamp">
+                                <div class="lamp-head"></div>
+                                <div class="lamp-glow"></div>
+                            </div>
+                        </div>
+
+                        <!-- LED Ambient Light Strips -->
+                        <div class="led-light-strip" id="ledLightStrip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3: AI Agent JARVIS HUD Panel -->
+            <div class="glass-card ai-agent-hud">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-brain"></i> AI AGENT REASONING ENGINE</h3>
+                    <span class="mode-tag" id="agentModeTag">AUTO MODE</span>
+                </div>
+
+                <div class="hud-panel-content">
+                    <div class="agent-avatar-status">
+                        <div class="agent-ai-ring" id="agentAiRing">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div>
+                            <div class="agent-title">GOAL-BASED AGENT v2.4</div>
+                            <div class="agent-sub" id="agentGoalText">Maintain Target Comfort</div>
+                        </div>
+                    </div>
+
+                    <div class="hud-field-box">
+                        <span class="hud-field-label">DECISION REASONING</span>
+                        <p class="hud-field-value" id="hudReasoningText">Initializing environment sensor inputs and checking target thresholds...</p>
+                    </div>
+
+                    <div class="hud-row-two">
+                        <div class="hud-field-box">
+                            <span class="hud-field-label">CURRENT DECISION</span>
+                            <div class="decision-pill" id="hudDecisionPill">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span id="hudDecisionText">MONITORING</span>
+                            </div>
+                        </div>
+                        <div class="hud-field-box">
+                            <span class="hud-field-label">CONFIDENCE SCORE</span>
+                            <div class="conf-bar-wrapper">
+                                <div class="conf-bar-fill" id="confBarFill" style="width: 98%;"></div>
+                            </div>
+                            <span class="conf-num" id="confNum">98%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ── ROW 2: 6 KEY STATISTICAL CARDS ── -->
+        <section class="stats-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-icon cool-icon"><i class="fa-solid fa-temperature-low"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">CURRENT TEMP</span>
+                    <h4 class="stat-value hud-font" id="statCurrentTemp">25.0°C</h4>
+                    <span class="stat-sub">Room Sensor</span>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-icon target-icon"><i class="fa-solid fa-crosshair"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">TARGET TEMP</span>
+                    <h4 class="stat-value hud-font" id="statDesiredTemp">24.0°C</h4>
+                    <span class="stat-sub">Goal Preference</span>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-icon comfort-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">COMFORT INDEX</span>
+                    <h4 class="stat-value hud-font" id="statComfortIdx">95%</h4>
+                    <span class="stat-sub">Thermal Satisfaction</span>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-icon decision-icon"><i class="fa-solid fa-list-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">TOTAL DECISIONS</span>
+                    <h4 class="stat-value hud-font" id="statTotalDecisions">0</h4>
+                    <span class="stat-sub">Logged Actions</span>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-icon runtime-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">AC RUNTIME</span>
+                    <h4 class="stat-value hud-font" id="statAcRuntime">0s</h4>
+                    <span class="stat-sub">Active Cooling</span>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-icon energy-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label">ENERGY SAVED</span>
+                    <h4 class="stat-value hud-font" id="statEnergySaved">0.0%</h4>
+                    <span class="stat-sub" id="statKwh">0.0 kWh est.</span>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ── ROW 3: SMART CONTROLS & WEATHER PANEL ── -->
+        <section class="controls-weather-grid">
+
+            <!-- Smart Controls Card -->
+            <div class="glass-card smart-controls-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-sliders"></i> SMART CONTROL PANEL</h3>
+                    <span class="speed-indicator" id="speedIndicator">1x Speed</span>
+                </div>
+
+                <div class="controls-flex">
+                    <!-- Temperature Slider Control -->
+                    <div class="control-block">
+                        <label for="tempRangeSlider"><i class="fa-solid fa-gauge-high"></i> Desired Temperature Slider</label>
+                        <div class="slider-row">
+                            <button class="step-btn" id="sliderMinusBtn"><i class="fa-solid fa-minus"></i></button>
+                            <input type="range" id="tempRangeSlider" min="16" max="30" step="0.5" value="24" />
+                            <button class="step-btn" id="sliderPlusBtn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="slider-val-display" id="sliderValDisplay">24.0°C</span>
+                            <button class="btn btn-primary" id="applyTempBtn">Set</button>
+                        </div>
+                    </div>
+
+                    <!-- Mode Selectors -->
+                    <div class="control-block">
+                        <label><i class="fa-solid fa-gears"></i> Operational Agent Mode</label>
+                        <div class="mode-button-group">
+                            <button class="mode-btn active" data-mode="Auto" id="modeAutoBtn">
+                                <i class="fa-solid fa-robot"></i> Auto
+                            </button>
+                            <button class="mode-btn" data-mode="Eco" id="modeEcoBtn">
+                                <i class="fa-solid fa-leaf"></i> Eco (26°C)
+                            </button>
+                            <button class="mode-btn" data-mode="Turbo" id="modeTurboBtn">
+                                <i class="fa-solid fa-bolt-lightning"></i> Turbo (18°C)
+                            </button>
+                            <button class="mode-btn" data-mode="Manual" id="modeManualBtn">
+                                <i class="fa-solid fa-hand"></i> Manual
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual AC Direct Actuator Buttons (Visible in Manual Mode) -->
+                    <div class="control-block manual-toggle-block hidden" id="manualToggleBlock">
+                        <label><i class="fa-solid fa-toggle-on"></i> Manual AC Override</label>
+                        <div class="manual-btn-group">
+                            <button class="btn btn-ac-on" id="manualAcOnBtn"><i class="fa-solid fa-power-off"></i> Turn AC ON</button>
+                            <button class="btn btn-ac-off" id="manualAcOffBtn"><i class="fa-solid fa-power-off"></i> Turn AC OFF</button>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Control Buttons -->
+                    <div class="control-block">
+                        <label><i class="fa-solid fa-play"></i> Simulation Management</label>
+                        <div class="action-buttons-group">
+                            <button class="btn btn-success" id="startSimBtn">
+                                <i class="fa-solid fa-play"></i> Start Simulation
+                            </button>
+                            <button class="btn btn-danger" id="stopSimBtn" disabled>
+                                <i class="fa-solid fa-pause"></i> Stop Simulation
+                            </button>
+                            <div class="speed-dropdown-wrapper">
+                                <button class="btn btn-outline" id="speedBtn"><i class="fa-solid fa-gauge"></i> 1x Speed</button>
+                                <div class="speed-menu" id="speedMenu">
+                                    <button data-speed="1">1x Normal</button>
+                                    <button data-speed="2">2x Fast</button>
+                                    <button data-speed="5">5x Turbo</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-warning" id="resetBtn" title="Reset Telemetry and Memory">
+                                <i class="fa-solid fa-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outside Weather Card -->
+            <div class="glass-card weather-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-cloud-sun"></i> OUTSIDE ENVIRONMENT</h3>
+                    <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Smart City</span>
+                </div>
+
+                <div class="weather-content-box">
+                    <div class="weather-main-temp">
+                        <i class="fa-solid fa-sun weather-hero-icon" id="weatherHeroIcon"></i>
+                        <div>
+                            <h2 class="hud-font" id="weatherOutTemp">32.5°C</h2>
+                            <span class="weather-desc" id="weatherCondition">Sunny & Clear</span>
+                        </div>
+                    </div>
+
+                    <div class="weather-details-grid">
+                        <div class="weather-detail-item">
+                            <i class="fa-solid fa-droplet"></i>
+                            <div>
+                                <span class="label">HUMIDITY</span>
+                                <span class="val" id="weatherHumidity">58%</span>
+                            </div>
+                        </div>
+                        <div class="weather-detail-item">
+                            <i class="fa-solid fa-wind"></i>
+                            <div>
+                                <span class="label">WIND SPEED</span>
+                                <span class="val" id="weatherWind">12 km/h</span>
+                            </div>
+                        </div>
+                        <div class="weather-detail-item">
+                            <i class="fa-solid fa-smog"></i>
+                            <div>
+                                <span class="label">AIR QUALITY</span>
+                                <span class="val text-success">Good (AQI 32)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ── ROW 4: LIVE ANALYTICS (CHART.JS GRAPHS) ── -->
+        <section class="analytics-grid">
+
+            <div class="glass-card chart-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-chart-line"></i> TEMPERATURE TELEMETRY HISTORY</h3>
+                    <span class="chart-tag">Real-time Stream</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card chart-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-chart-bar"></i> AC ACTUATOR POWER OUTPUT</h3>
+                    <span class="chart-tag">kW Load</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="powerChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ── ROW 5: ACTIVITY TIMELINE ── -->
+        <section class="timeline-section">
+            <div class="glass-card timeline-card">
+                <div class="card-header-bar">
+                    <h3><i class="fa-solid fa-timeline"></i> AGENT DECISION & ACTIVITY TIMELINE</h3>
+                    <span class="timeline-count-tag" id="timelineCountTag">0 Events</span>
+                </div>
+
+                <div class="timeline-scroll-container">
+                    <div class="vertical-timeline" id="verticalTimeline">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <div class="empty-timeline-state" id="emptyTimelineState">
+                        <i class="fa-solid fa-hourglass-start"></i>
+                        <p>No decision log recorded yet. Start simulation to observe goal-based actions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  FLOATING AI VOICE ASSISTANT AVATAR                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="floating-ai-assistant" id="floatingAssistant">
+        <!-- Speech Bubble Message -->
+        <div class="ai-speech-bubble" id="aiSpeechBubble">
+            <span class="ai-name">JARVIS AI:</span>
+            <p id="aiSpeechText">Hello! Smart Home AI Agent is online and monitoring temperature balance.</p>
+        </div>
+
+        <!-- Animated Avatar Ring & Icon -->
+        <div class="ai-avatar-trigger" id="aiAvatarTrigger" title="Click to interact with AI Voice Assistant">
+            <div class="avatar-glow-ring"></div>
+            <i class="fa-solid fa-robot avatar-icon"></i>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  FOOTER                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <footer class="app-footer">
+        <p>Smart Home AI Control Center &copy; 2026 &mdash; Production Goal-Based Agent Simulator</p>
+    </footer>
+
+    <!-- Main JavaScript Logic -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
